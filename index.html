@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KĐQ Live Stream - Secure Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <title>KĐQ Live Stream - Ultra Secure</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
+        /* RESET & CHỐNG COPY */
         * { box-sizing: border-box; -webkit-user-select: none; user-select: none; }
-        body { margin: 0; background: #000; font-family: 'Montserrat', sans-serif; overflow: hidden; }
+        body { margin: 0; background: #000; font-family: 'Montserrat', sans-serif; overflow: hidden; height: 100vh; }
 
-        /* VIDEO LUỒNG CHÍNH */
+        /* IFRAME VIDEO */
         iframe {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             border: none; z-index: 1; pointer-events: auto;
@@ -23,32 +24,52 @@
         }
 
         .player {
-            min-width: 140px; /* Thu hẹp độ rộng */
-            padding: 8px 20px; /* Hẹp bớt bề ngang */
+            min-width: 140px; 
+            padding: 8px 20px; 
             font-size: 22px; 
-            font-weight: 500; /* 🟢 CHỮ HẾT MẬP: Nét vừa vặn, hiện đại */
-            letter-spacing: -0.5px; /* Bóp chữ lại xíu cho thanh thoát */
+            font-weight: 500; /* Chữ gầy mảnh hiện đại */
+            letter-spacing: -0.5px;
             color: #fff;
             text-transform: uppercase; text-align: center;
             backdrop-filter: blur(12px); border-radius: 4px;
             clip-path: polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%);
             border-bottom: 2px solid rgba(255,255,255,0.2);
+            transition: all 0.5s ease;
         }
 
         .red { background: linear-gradient(135deg, rgba(220,20,20,0.85), rgba(100,0,0,0.9)); box-shadow: 0 0 15px rgba(255,0,0,0.3); }
         .blue { background: linear-gradient(135deg, rgba(20,100,220,0.85), rgba(0,30,100,0.9)); box-shadow: 0 0 15px rgba(0,100,255,0.3); }
 
-        /* PANEL ĐIỀU KHIỂN */
+        /* PANEL NHẬP LIỆU (GLASSMORPHISM) */
         .panel {
-            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
-            background: rgba(10, 10, 10, 0.9); padding: 15px;
-            border-radius: 12px; display: flex; gap: 10px; z-index: 100;
-            border: 1px solid rgba(255,255,255,0.15);
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(20px);
+            padding: 20px; border-radius: 16px; display: flex; gap: 15px; z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+            transition: all 0.5s ease;
         }
 
-        input { background: #1a1a1a; color: #fff; border: 1px solid #333; padding: 8px 12px; border-radius: 6px; outline: none; }
-        button { background: #00c853; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; }
-        button:hover { background: #00e676; }
+        input {
+            background: rgba(255, 255, 255, 0.08); color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 15px; border-radius: 8px; outline: none;
+            font-family: 'Montserrat', sans-serif; font-weight: 500;
+            width: 180px; transition: 0.3s;
+        }
+
+        input:focus { border-color: #00c853; box-shadow: 0 0 15px rgba(0, 200, 83, 0.3); }
+
+        button {
+            background: linear-gradient(135deg, #00c853, #007e33);
+            color: #fff; border: none; padding: 12px 25px;
+            border-radius: 8px; font-weight: 700; cursor: pointer;
+            text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0, 200, 83, 0.4);
+            transition: 0.3s;
+        }
+
+        button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 200, 83, 0.6); }
 
         @media (max-width: 768px) {
             .overlay { padding: 0 20px; }
@@ -57,13 +78,13 @@
         }
     </style>
 </head>
-<body oncontextmenu="return false;"> <!-- Chặn chuột phải trực tiếp -->
+<body oncontextmenu="return false;">
 
     <iframe id="kdq_stream" src=""></iframe>
 
     <div class="overlay">
-        <div class="player red" id="name1">Player 1</div>
-        <div class="player blue" id="name2">Player 2</div>
+        <div class="player red" id="name1">PLAYER 1</div>
+        <div class="player blue" id="name2">PLAYER 2</div>
     </div>
 
     <div class="panel" id="panel">
@@ -73,28 +94,52 @@
     </div>
 
     <script>
-        // 🟢 BẢO MẬT 1: Mã hóa Base64 link VDO.ninja của mày vào đây
+        // 1. GIẤU LINK (Base64)
         // Link gốc của mày: https://vdo.ninja/?view=quocdang&cleanoutput&noaudio&buffer=0
         const encoded = "aHR0cHM6Ly92ZG8ubmluamEvP3ZpZXc9cXVvY2RhbmcmY2xlYW5vdXRwdXQmbm9hdWRpbyZidWZmZXI9MA==";
         document.getElementById("kdq_stream").src = atob(encoded);
 
         const params = new URLSearchParams(window.location.search);
+        const panel = document.getElementById("panel");
         
-        // Gán tên ban đầu
+        // Gán tên ban đầu từ URL
         document.getElementById("name1").innerText = params.get("d") || "TIÊN";
         document.getElementById("name2").innerText = params.get("x") || "HẬU";
 
-        if(params.get("live") === "1") document.getElementById("panel").style.display = "none";
+        // Tự ẩn nếu là chế độ live
+        if(params.get("live") === "1") panel.style.display = "none";
 
+        // 2. HÀM CẬP NHẬT & BIẾN MẤT
         function updateData() {
             const v1 = document.getElementById("input1").value.trim() || "TIÊN";
             const v2 = document.getElementById("input2").value.trim() || "HẬU";
+            
             document.getElementById("name1").innerText = v1;
             document.getElementById("name2").innerText = v2;
+            
+            // Cập nhật URL thầm lặng
             window.history.pushState({}, '', `?d=${encodeURIComponent(v1)}&x=${encodeURIComponent(v2)}`);
+            
+            // Hiệu ứng biến mất
+            panel.style.opacity = "0";
+            panel.style.pointerEvents = "none";
+            setTimeout(() => { panel.style.display = "none"; }, 500);
         }
 
-        // 🟢 BẢO MẬT 2: Chặn phím tắt soi code (F12, Ctrl+U, v.v.)
+        // 3. HIỆN LẠI KHI CẦN (Phím H)
+        document.addEventListener('keydown', function(e) {
+            if (e.key.toLowerCase() === 'h') {
+                panel.style.display = "flex";
+                panel.style.pointerEvents = "auto";
+                setTimeout(() => { panel.style.opacity = "1"; }, 10);
+            }
+            // Nhấn Enter để cập nhật luôn cho tiện
+            if (e.key === 'Enter' && panel.style.display !== 'none') {
+                updateData();
+            }
+        });
+
+        // 4. BẢO MẬT: CHẶN F12 / CTRL+U
         document.onkeydown = function(e) {
             if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67)) || (e.ctrlKey && e.keyCode == 85)) {
                 return false;

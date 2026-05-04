@@ -1,121 +1,105 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Camera + Overlay</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KĐQ Live Stream - Secure Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; -webkit-user-select: none; user-select: none; }
+        body { margin: 0; background: #000; font-family: 'Montserrat', sans-serif; overflow: hidden; }
 
-<style>
-body { margin:0; background:#000; font-family:Arial; }
+        /* VIDEO LUỒNG CHÍNH */
+        iframe {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            border: none; z-index: 1; pointer-events: auto;
+        }
 
-iframe {
-  position:fixed;
-  width:100%;
-  height:100%;
-  border:none;
-}
+        /* OVERLAY PLAYER */
+        .overlay {
+            position: fixed; top: 35px; left: 0; width: 100%;
+            display: flex; justify-content: space-between;
+            padding: 0 100px; z-index: 10; pointer-events: none;
+        }
 
-/* Overlay */
-.overlay {
-  position:fixed;
-  top:10px;
-  left:50%;
-  transform:translateX(-50%);
-  display:flex;
-  gap:20px;
-  font-size:20px;
-  font-weight:bold;
-}
+        .player {
+            min-width: 140px; /* Thu hẹp độ rộng */
+            padding: 8px 20px; /* Hẹp bớt bề ngang */
+            font-size: 22px; 
+            font-weight: 500; /* 🟢 CHỮ HẾT MẬP: Nét vừa vặn, hiện đại */
+            letter-spacing: -0.5px; /* Bóp chữ lại xíu cho thanh thoát */
+            color: #fff;
+            text-transform: uppercase; text-align: center;
+            backdrop-filter: blur(12px); border-radius: 4px;
+            clip-path: polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%);
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+        }
 
-.player {
-  padding:8px 16px;
-  border-radius:8px;
-  color:#fff;
-}
+        .red { background: linear-gradient(135deg, rgba(220,20,20,0.85), rgba(100,0,0,0.9)); box-shadow: 0 0 15px rgba(255,0,0,0.3); }
+        .blue { background: linear-gradient(135deg, rgba(20,100,220,0.85), rgba(0,30,100,0.9)); box-shadow: 0 0 15px rgba(0,100,255,0.3); }
 
-.red { background:red; }
-.blue { background:blue; }
+        /* PANEL ĐIỀU KHIỂN */
+        .panel {
+            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
+            background: rgba(10, 10, 10, 0.9); padding: 15px;
+            border-radius: 12px; display: flex; gap: 10px; z-index: 100;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
 
-.score {
-  background:#000;
-  padding:8px 16px;
-  border-radius:8px;
-}
+        input { background: #1a1a1a; color: #fff; border: 1px solid #333; padding: 8px 12px; border-radius: 6px; outline: none; }
+        button { background: #00c853; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+        button:hover { background: #00e676; }
 
-/* Control panel */
-.controls {
-  position:fixed;
-  bottom:20px;
-  left:50%;
-  transform:translateX(-50%);
-  background:rgba(0,0,0,0.6);
-  padding:10px;
-  border-radius:10px;
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-}
-
-input {
-  padding:5px;
-  border-radius:5px;
-  border:none;
-}
-
-button {
-  padding:6px 10px;
-  border:none;
-  border-radius:5px;
-  background:#00c853;
-  color:white;
-}
-
-.stop { background:#d50000; }
-</style>
+        @media (max-width: 768px) {
+            .overlay { padding: 0 20px; }
+            .player { min-width: 110px; font-size: 16px; }
+            .panel { width: 90%; flex-direction: column; }
+        }
+    </style>
 </head>
+<body oncontextmenu="return false;"> <!-- Chặn chuột phải trực tiếp -->
 
-<body>
+    <iframe id="kdq_stream" src=""></iframe>
 
-<iframe id="videoFrame"></iframe>
+    <div class="overlay">
+        <div class="player red" id="name1">Player 1</div>
+        <div class="player blue" id="name2">Player 2</div>
+    </div>
 
-<!-- Overlay hiển thị -->
-<div class="overlay">
-  <div class="player red" id="name1">Đỏ</div>
-  <div class="score" id="score">0 - 0</div>
-  <div class="player blue" id="name2">Xanh</div>
-</div>
+    <div class="panel" id="panel">
+        <input id="input1" placeholder="Tên Đỏ">
+        <input id="input2" placeholder="Tên Xanh">
+        <button onclick="updateData()">Cập nhật</button>
+    </div>
 
-<!-- Điều khiển -->
-<div class="controls">
-  <input id="input1" placeholder="Tên đỏ">
-  <input id="input2" placeholder="Tên xanh">
-  <input id="scoreInput" placeholder="Tỉ số (vd: 1-0)">
+    <script>
+        // 🟢 BẢO MẬT 1: Mã hóa Base64 link VDO.ninja của mày vào đây
+        // Link gốc của mày: https://vdo.ninja/?view=quocdang&cleanoutput&noaudio&buffer=0
+        const encoded = "aHR0cHM6Ly92ZG8ubmluamEvP3ZpZXc9cXVvY2RhbmcmY2xlYW5vdXRwdXQmbm9hdWRpbyZidWZmZXI9MA==";
+        document.getElementById("kdq_stream").src = atob(encoded);
 
-  <button onclick="updateOverlay()">Cập nhật</button>
-  <button onclick="startStream()">Start</button>
-  <button class="stop" onclick="stopStream()">Stop</button>
-</div>
+        const params = new URLSearchParams(window.location.search);
+        
+        // Gán tên ban đầu
+        document.getElementById("name1").innerText = params.get("d") || "TIÊN";
+        document.getElementById("name2").innerText = params.get("x") || "HẬU";
 
-<script>
-function startStream() {
-  document.getElementById("videoFrame").src =
-    "https://vdo.ninja/?push=quocdang&autostart&cleanoutput&quality=0&bitrate=4000&buffer=0";
-}
+        if(params.get("live") === "1") document.getElementById("panel").style.display = "none";
 
-function stopStream() {
-  document.getElementById("videoFrame").src = "";
-}
+        function updateData() {
+            const v1 = document.getElementById("input1").value.trim() || "TIÊN";
+            const v2 = document.getElementById("input2").value.trim() || "HẬU";
+            document.getElementById("name1").innerText = v1;
+            document.getElementById("name2").innerText = v2;
+            window.history.pushState({}, '', `?d=${encodeURIComponent(v1)}&x=${encodeURIComponent(v2)}`);
+        }
 
-function updateOverlay() {
-  const n1 = document.getElementById("input1").value;
-  const n2 = document.getElementById("input2").value;
-  const sc = document.getElementById("scoreInput").value;
-
-  if (n1) document.getElementById("name1").innerText = n1;
-  if (n2) document.getElementById("name2").innerText = n2;
-  if (sc) document.getElementById("score").innerText = sc;
-}
-</script>
-
+        // 🟢 BẢO MẬT 2: Chặn phím tắt soi code (F12, Ctrl+U, v.v.)
+        document.onkeydown = function(e) {
+            if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67)) || (e.ctrlKey && e.keyCode == 85)) {
+                return false;
+            }
+        };
+    </script>
 </body>
 </html>

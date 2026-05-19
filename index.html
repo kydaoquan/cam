@@ -148,24 +148,16 @@
         }
 
         /* --- KHUNG STREAM IFRAME TOÀN MÀN HÌNH --- */
-        #iframe-wrapper {
+        #stream-iframe {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
+            border: none;
             display: none;
-            overflow: hidden;
             background-color: #000000;
             z-index: 10;
-        }
-
-        #stream-iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            transition: transform 0.1s ease-out; /* Tạo hiệu ứng zoom mượt */
-            transform-origin: center center;
         }
 
         #btn-close {
@@ -187,7 +179,7 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
 
-        /* --- THANH ĐIỀU KHIỂN ZOOM (MỚI) --- */
+        /* --- THANH ĐIỀU KHIỂN ZOOM DỌC --- */
         #zoom-control-box {
             position: fixed;
             right: 24px;
@@ -221,7 +213,6 @@
             align-items: center;
         }
 
-        /* Biến cái input range mặc định thành thanh trượt dọc tinh tế */
         .zoom-slider {
             -webkit-appearance: none;
             appearance: none;
@@ -229,7 +220,7 @@
             height: 4px;
             background: rgba(255, 255, 255, 0.3);
             border-radius: 2px;
-            transform: rotate(-90deg); /* Xoay dọc thanh trượt */
+            transform: rotate(-90deg);
             margin: 45px 0;
             outline: none;
         }
@@ -282,14 +273,12 @@
     <button id="btn-close" onclick="stopStream()">✕</button>
 
     <div id="zoom-control-box">
-        <button class="zoom-btn" onclick="changeZoomBtn(0.2)">+</button>
-        <input type="range" id="zoom-slider" class="zoom-slider" min="1" max="3" step="0.1" value="1" oninput="applyZoom(this.value)">
-        <button class="zoom-btn" onclick="changeZoomBtn(-0.2)">-</button>
+        <button class="zoom-btn" onclick="changeZoomBtn(1)">+</button>
+        <input type="range" id="zoom-slider" class="zoom-slider" min="100" max="400" step="10" value="100" oninput="applyHardwareZoom(this.value)">
+        <button class="zoom-btn" onclick="changeZoomBtn(-1)">-</button>
     </div>
     
-    <div id="iframe-wrapper">
-        <iframe id="stream-iframe" src="" allow="camera *; microphone *; autoplay *; fullscreen *" allowfullscreen></iframe>
-    </div>
+    <iframe id="stream-iframe" src="" allow="camera *; microphone *; autoplay *; fullscreen *" allowfullscreen></iframe>
 
     <script>
         let wakeLockSentinel = null;
@@ -302,20 +291,20 @@
             else if (qualityInput === '2k') bitrateInput.value = "8000";
         }
 
-        // Hàm thực hiện kéo to thu nhỏ Iframe bằng CSS Transform
-        function applyZoom(value) {
+        // 🕵️‍♂️ BÙA CHÚ MỚI: Gửi lệnh Zoom trực tiếp vào hệ thống camera phần cứng của VDO.Ninja
+        function applyHardwareZoom(value) {
             const iframe = document.getElementById('stream-iframe');
-            iframe.style.transform = `scale(${value})`;
+            // Bắn một tin nhắn (postMessage) xuyên qua Iframe để ra lệnh cho VDO thay đổi tiêu cự camera
+            iframe.contentWindow.postMessage({ "zoom": parseInt(value) }, '*');
         }
 
-        // Hàm xử lý khi bấm nút + hoặc -
-        function changeZoomBtn(step) {
+        function changeZoomBtn(direction) {
             const slider = document.getElementById('zoom-slider');
-            let newValue = parseFloat(slider.value) + step;
-            if (newValue < 1) newValue = 1;
-            if (newValue > 3) newValue = 3;
+            let newValue = parseInt(slider.value) + (direction * 20); // Mỗi lần bấm tăng giảm 20 đơn vị
+            if (newValue < 100) newValue = 100;
+            if (newValue > 400) newValue = 400;
             slider.value = newValue;
-            applyZoom(newValue);
+            applyHardwareZoom(newValue);
         }
 
         function startStream() {
@@ -327,7 +316,6 @@
             if (!customBitrate || isNaN(customBitrate) || customBitrate <= 0) { alert('Nhập Bitrate!'); return; }
 
             const mainContainer = document.getElementById('main-container');
-            const wrapper = document.getElementById('iframe-wrapper');
             const iframe = document.getElementById('stream-iframe');
             const btnClose = document.getElementById('btn-close');
             const zoomBox = document.getElementById('zoom-control-box');
@@ -337,23 +325,22 @@
             else if (qualityInput === '2k') { width = 2560; height = 1440; }
 
             const secretDomain = atob("aHR0cHM6Ly92ZG8ubmluamEv"); 
-            const vdoUrl = `${secretDomain}?push=${idInput}&facing=back&width=${width}&height=${height}&videobitrate=${customBitrate}&scale=100&autostart=1&clean=1`;
+            
+            // 🔒 QUAN TRỌNG: Thêm tham số &control và &zoom vào URL để VDO cho phép điều khiển camera từ xa
+            const vdoUrl = `${secretDomain}?push=${idInput}&facing=back&width=${width}&height=${height}&videobitrate=${customBitrate}&scale=100&autostart=1&clean=1&zoom&control&buttons=0`;
 
-            // Toàn màn hình
             const docElm = document.documentElement;
             if (docElm.requestFullscreen) docElm.requestFullscreen();
             else if (docElm.webkitRequestFullscreen) docElm.webkitRequestFullscreen();
 
-            // Reset thanh zoom về mức 1x ban đầu khi khởi động
-            document.getElementById('zoom-slider').value = 1;
-            iframe.style.transform = "scale(1)";
+            // Reset slider về 100 (tức là 1x)
+            document.getElementById('zoom-slider').value = 100;
 
-            // Hiện luồng và thanh công cụ zoom
             mainContainer.style.display = 'none';
             iframe.src = vdoUrl; 
-            wrapper.style.display = 'block';
+            iframe.style.display = 'block';
             btnClose.style.display = 'flex';
-            zoomBox.style.display = 'flex'; // Hiện thanh gạt zoom bên góc phải
+            zoomBox.style.display = 'flex';
 
             if (navigator.wakeLock) {
                 navigator.wakeLock.request('screen').catch(err => console.log(err));
@@ -362,7 +349,6 @@
 
         function stopStream() {
             const mainContainer = document.getElementById('main-container');
-            const wrapper = document.getElementById('iframe-wrapper');
             const iframe = document.getElementById('stream-iframe');
             const btnClose = document.getElementById('btn-close');
             const zoomBox = document.getElementById('zoom-control-box');
@@ -371,7 +357,7 @@
             else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
 
             iframe.src = '';
-            wrapper.style.display = 'none';
+            iframe.style.display = 'none';
             btnClose.style.display = 'none';
             zoomBox.style.display = 'none';
             mainContainer.style.display = 'flex';

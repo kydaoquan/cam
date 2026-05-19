@@ -160,7 +160,6 @@
             z-index: 10;
         }
 
-        /* Nút đóng nổi hẳn lên trên góc */
         #btn-close {
             position: fixed;
             top: 24px;
@@ -199,11 +198,16 @@
 
         <div class="input-group">
             <span class="input-label">QUALITY RESOLUTION</span>
-            <select id="stream-quality" class="stream-select">
+            <select id="stream-quality" class="stream-select" onchange="autoChangeBitrate()">
                 <option value="hd">HD (720p - Tiết kiệm mạng)</option>
                 <option value="fhd" selected>FULL HD (1080p - Chuẩn căng)</option>
                 <option value="2k">2K (1440p - Cực nét)</option>
             </select>
+        </div>
+
+        <div class="input-group">
+            <span class="input-label">VIDEO BITRATE (KBPS)</span>
+            <input type="number" id="stream-bitrate" class="stream-input" placeholder="Ví dụ: 6000" value="6000">
         </div>
 
         <button class="btn-start" onclick="startStream()">BẮT ĐẦU PHÁT</button>
@@ -213,14 +217,34 @@
     <iframe id="stream-iframe" allow="camera *; microphone *; autoplay *; fullscreen *" allowfullscreen></iframe>
 
     <script>
-        let wakeLockSentinel = null; // Biến quản lý trạng thái giữ sáng màn hình
+        let wakeLockSentinel = null;
+
+        // Hàm tự động nhảy số Bitrate gợi ý khi người dùng đổi Độ phân giải
+        function autoChangeBitrate() {
+            const qualityInput = document.getElementById('stream-quality').value;
+            const bitrateInput = document.getElementById('stream-bitrate');
+            
+            if (qualityInput === 'hd') {
+                bitrateInput.value = "2500"; // Gợi ý cho 720p
+            } else if (qualityInput === 'fhd') {
+                bitrateInput.value = "6000"; // Gợi ý cho 1080p theo ý mày
+            } else if (qualityInput === '2k') {
+                bitrateInput.value = "8000"; // Gợi ý cho 2K
+            }
+        }
 
         function startStream() {
             const idInput = document.getElementById('channel-id').value.trim();
             const qualityInput = document.getElementById('stream-quality').value;
+            let customBitrate = document.getElementById('stream-bitrate').value.trim();
             
             if (!idInput) {
                 alert('Nhập ID vào đã mày ơi!');
+                return;
+            }
+
+            if (!customBitrate || isNaN(customBitrate) || customBitrate <= 0) {
+                alert('Vui lòng nhập số Bitrate hợp lệ (ví dụ: 6000)!');
                 return;
             }
 
@@ -228,34 +252,27 @@
             const iframe = document.getElementById('stream-iframe');
             const btnClose = document.getElementById('btn-close');
 
-            // Cấu hình thông số phân giải & bitrate
-            let videoBitrate = 4000;
+            // Cấu hình Kích thước khung hình
             let width = 1920;
             let height = 1080;
 
             if (qualityInput === 'hd') {
-                videoBitrate = 2000;
                 width = 1280;
                 height = 720;
             } else if (qualityInput === '2k') {
-                videoBitrate = 8000;
                 width = 2560;
                 height = 1440;
             }
 
-            // 🛠️ CHUẨN HÓA THAM SỐ URL VDO.NINJA TỰ ĐỘNG CHẠY MƯỢT MÀ
-            const vdoUrl = `https://vdo.ninja/?push=${idInput}&facing=back&width=${width}&height=${height}&videobitrate=${videoBitrate}&scale=100&autostart=1&clean=1`;
+            // Gán thẳng số Bitrate người dùng vừa gõ vào link URL VDO.Ninja
+            const vdoUrl = `https://vdo.ninja/?push=${idInput}&facing=back&width=${width}&height=${height}&videobitrate=${customBitrate}&scale=100&autostart=1&clean=1`;
 
-            // KÍCH HOẠT CHẾ ĐỘ TOÀN MÀN HÌNH CỦA TRÌNH DUYỆW
+            // KÍCH HOẠT CHẾ ĐỘ TOÀN MÀN HÌNH
             const docElm = document.documentElement;
             if (docElm.requestFullscreen) {
                 docElm.requestFullscreen();
-            } else if (docElm.mozRequestFullScreen) { /* Firefox */
-                docElm.mozRequestFullScreen();
-            } else if (docElm.webkitRequestFullscreen) { /* Chrome, Safari và Opera */
+            } else if (docElm.webkitRequestFullscreen) {
                 docElm.webkitRequestFullscreen();
-            } else if (docElm.msRequestFullscreen) { /* IE/Edge */
-                docElm.msRequestFullscreen();
             }
 
             // Chuyển đổi hiển thị giao diện
@@ -264,7 +281,7 @@
             iframe.style.display = 'block';
             btnClose.style.display = 'flex';
 
-            // Giữ sáng màn hình không cho sleep máy khi đang stream
+            // Giữ sáng màn hình không cho ngủ máy
             if (navigator.wakeLock) {
                 navigator.wakeLock.request('screen')
                     .then(lock => { wakeLockSentinel = lock; })
@@ -277,23 +294,16 @@
             const iframe = document.getElementById('stream-iframe');
             const btnClose = document.getElementById('btn-close');
 
-            // THOÁT CHẾ ĐỘ TOÀN MÀN HÌNH
             if (document.exitFullscreen) {
                 document.exitFullscreen();
-            } else if (document.mozCancelFullScreen) {
-                document.mozCancelFullScreen();
             } else if (document.webkitExitFullscreen) {
                 document.webkitExitFullscreen();
-            } else if (document.msExitFullscreen) {
-                document.msExitFullscreen();
             }
 
-            // 🛠️ GIẢI PHÓNG WAKELOCK ĐỂ TIẾT KIỆM PIN CHO MÁY
             if (wakeLockSentinel !== null) {
                 wakeLockSentinel.release().then(() => { wakeLockSentinel = null; });
             }
 
-            // Trả lại giao diện nhập ID ban đầu
             iframe.src = '';
             iframe.style.display = 'none';
             btnClose.style.display = 'none';

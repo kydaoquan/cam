@@ -24,19 +24,18 @@
             align-items: center;
         }
 
-        /* --- GIAO DIỆN MÀN HÌNH CHÍNH (GIỐNG ẢNH MẪU CỦA MÀY) --- */
+        /* --- GIAO DIỆN MÀN HÌNH CHÍNH --- */
         #main-container {
             width: 100%;
-            max-width: 400 bounds;
+            max-width: 400px;
             padding: 0 36px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: opacity 0.3s ease;
         }
 
-        /* Icon phát sóng phát quang nhẹ */
+        /* Icon phát sóng */
         .stream-icon-box {
             width: 110px;
             height: 110px;
@@ -55,7 +54,6 @@
             fill: #4D80F5;
         }
 
-        /* Tiêu đề */
         h1 {
             font-size: 26px;
             font-weight: 900;
@@ -68,15 +66,15 @@
             font-size: 14px;
             color: rgba(255, 255, 255, 0.4);
             font-weight: 400;
-            margin-bottom: 50px;
+            margin-bottom: 40px;
             text-align: center;
         }
 
-        /* Ô nhập liệu CHANNEL ID */
+        /* Khung bọc các ô nhập liệu */
         .input-group {
             position: relative;
             width: 100%;
-            margin-bottom: 28px;
+            margin-bottom: 24px;
         }
 
         .input-label {
@@ -92,6 +90,7 @@
             z-index: 1;
         }
 
+        /* Ô nhập Channel ID */
         .stream-input {
             width: 100%;
             height: 65px;
@@ -110,6 +109,29 @@
             border-color: #4D80F5;
         }
 
+        /* Ô chọn Chất lượng (Dropdown/Select) */
+        .stream-select {
+            width: 100%;
+            height: 65px;
+            background-color: #191C24;
+            border: 1.5px solid rgba(255, 255, 255, 0.12);
+            border-radius: 18px;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            text-align-last: center; /* Căn giữa chữ trong select */
+            outline: none;
+            cursor: pointer;
+            appearance: none; /* Ẩn mũi tên mặc định của trình duyệt */
+            -webkit-appearance: none;
+            transition: border-color 0.2s;
+        }
+
+        .stream-select:focus {
+            border-color: #4D80F5;
+        }
+
         /* Nút Bắt đầu phát */
         .btn-start {
             width: 100%;
@@ -122,6 +144,7 @@
             font-weight: bold;
             letter-spacing: 0.5px;
             cursor: pointer;
+            margin-top: 10px;
             transition: background-color 0.2s;
         }
 
@@ -129,7 +152,7 @@
             background-color: #3b6ed9;
         }
 
-        /* --- KHUNG WEBVIEW NHÚNG VDO.NINJA --- */
+        /* --- KHUNG STREAM IFRAME --- */
         #stream-iframe {
             position: fixed;
             top: 0;
@@ -142,7 +165,6 @@
             z-index: 10;
         }
 
-        /* Nút tắt luồng quay lại màn hình chính */
         #btn-close {
             position: fixed;
             top: 20px;
@@ -179,6 +201,15 @@
             <input type="text" id="channel-id" class="stream-input" placeholder="Nhập ID..." value="quocdang">
         </div>
 
+        <div class="input-group">
+            <span class="input-label">QUALITY RESOLUTION</span>
+            <select id="stream-quality" class="stream-select">
+                <option value="hd">HD (720p - Tiết kiệm mạng)</option>
+                <option value="fhd" selected>FULL HD (1080p - Chuẩn căng)</option>
+                <option value="2k">2K (1440p - Cực nét)</option>
+            </select>
+        </div>
+
         <button class="btn-start" onclick="startStream()">BẮT ĐẦU PHÁT</button>
     </div>
 
@@ -188,6 +219,8 @@
     <script>
         function startStream() {
             const idInput = document.getElementById('channel-id').value.trim();
+            const qualityInput = document.getElementById('stream-quality').value;
+            
             if (!idInput) {
                 alert('Nhập ID vào đã mày ơi!');
                 return;
@@ -197,16 +230,33 @@
             const iframe = document.getElementById('stream-iframe');
             const btnClose = document.getElementById('btn-close');
 
-            // Cấu hình URL VDO.Ninja (ép camera sau, chất lượng cao, tự chạy)
-            const vdoUrl = `https://vdo.ninja/?push=${idInput}&facing=back&quality=0&autostart&clean`;
+            // Khởi tạo các biến cấu hình thông số kỹ thuật của VDO.Ninja
+            let videoBitrate = 4000; // Mặc định bitrate cho FHD
+            let width = 1920;
+            let height = 1080;
 
-            // Ẩn giao diện chính, hiện khung stream lên toàn màn hình
+            if (qualityInput === 'hd') {
+                videoBitrate = 2000;  // 2000 kbps cho 720p mượt mà
+                width = 1280;
+                height = 720;
+            } else if (qualityInput === '2k') {
+                videoBitrate = 8000;  // 8000 kbps cho nét căng đét 2K
+                width = 2560;
+                height = 1440;
+            }
+
+            // Tạo link nhúng VDO.Ninja động dựa trên cấu hình đã chọn
+            // &videobitrate -> Khóa băng thông trần
+            // &width và &height -> Ép trình duyệt render đúng độ phân giải
+            const vdoUrl = `https://vdo.ninja/?push=${idInput}&facing=back&width=${width}&height=${height}&videobitrate=${videoBitrate}&autostart&clean`;
+
+            // Chuyển đổi giao diện sang màn hình stream
             mainContainer.style.display = 'none';
             iframe.src = vdoUrl;
             iframe.style.display = 'block';
             btnClose.style.display = 'flex';
 
-            // Yêu cầu trình duyệt giữ màn hình luôn sáng (nếu trình duyệt hỗ trợ)
+            // Giữ màn hình luôn sáng
             if (navigator.wakeLock) {
                 navigator.wakeLock.request('screen').catch(err => console.log('WakeLock lỗi:', err));
             }
@@ -217,7 +267,6 @@
             const iframe = document.getElementById('stream-iframe');
             const btnClose = document.getElementById('btn-close');
 
-            // Tắt luồng, reset iframe và hiện lại màn hình nhập ID
             iframe.src = '';
             iframe.style.display = 'none';
             btnClose.style.display = 'none';

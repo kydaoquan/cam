@@ -210,9 +210,11 @@
     </div>
 
     <button id="btn-close" onclick="stopStream()">✕</button>
-    <iframe id="stream-iframe" allow="camera;microphone;autoplay;fullscreen"></iframe>
+    <iframe id="stream-iframe" allow="camera *; microphone *; autoplay *; fullscreen *" allowfullscreen></iframe>
 
     <script>
+        let wakeLockSentinel = null; // Biến quản lý trạng thái giữ sáng màn hình
+
         function startStream() {
             const idInput = document.getElementById('channel-id').value.trim();
             const qualityInput = document.getElementById('stream-quality').value;
@@ -241,10 +243,10 @@
                 height = 1440;
             }
 
-            // Thêm &scale=100 để video camera co giãn bao phủ 100% diện tích màn hình điện thoại
-            const vdoUrl = `https://vdo.ninja/?push=${idInput}&facing=back&width=${width}&height=${height}&videobitrate=${videoBitrate}&scale=100&autostart&clean`;
+            // 🛠️ CHUẨN HÓA THAM SỐ URL VDO.NINJA TỰ ĐỘNG CHẠY MƯỢT MÀ
+            const vdoUrl = `https://vdo.ninja/?push=${idInput}&facing=back&width=${width}&height=${height}&videobitrate=${videoBitrate}&scale=100&autostart=1&clean=1`;
 
-            // KÍCH HOẠT CHẾ ĐỘ TOÀN MÀN HÌNH CỦA TRÌNH DUYỆT
+            // KÍCH HOẠT CHẾ ĐỘ TOÀN MÀN HÌNH CỦA TRÌNH DUYỆW
             const docElm = document.documentElement;
             if (docElm.requestFullscreen) {
                 docElm.requestFullscreen();
@@ -262,9 +264,11 @@
             iframe.style.display = 'block';
             btnClose.style.display = 'flex';
 
-            // Giữ sáng màn hình
+            // Giữ sáng màn hình không cho sleep máy khi đang stream
             if (navigator.wakeLock) {
-                navigator.wakeLock.request('screen').catch(err => console.log('WakeLock lỗi:', err));
+                navigator.wakeLock.request('screen')
+                    .then(lock => { wakeLockSentinel = lock; })
+                    .catch(err => console.log('WakeLock lỗi:', err));
             }
         }
 
@@ -282,6 +286,11 @@
                 document.webkitExitFullscreen();
             } else if (document.msExitFullscreen) {
                 document.msExitFullscreen();
+            }
+
+            // 🛠️ GIẢI PHÓNG WAKELOCK ĐỂ TIẾT KIỆM PIN CHO MÁY
+            if (wakeLockSentinel !== null) {
+                wakeLockSentinel.release().then(() => { wakeLockSentinel = null; });
             }
 
             // Trả lại giao diện nhập ID ban đầu

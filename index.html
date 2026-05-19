@@ -230,17 +230,18 @@
                 height = 1440;
             }
 
-            // 🛠️ ĐOẠN CODE BÙA CHÚ Ở ĐÂY:
-            // &screenshare=0 -> Tắt hoàn toàn tính năng chia sẻ màn hình của VDO
-            // &pushsel=1 -> Ép hiện bảng chọn Camera đơn lẻ lên giữa màn hình tối
-            const vdoUrl = `https://vdo.ninja/?push=${idInput}&facing=back&width=${width}&height=${height}&videobitrate=${videoBitrate}&scale=100&screenshare=0&pushsel=1&clean=1`;
+            // 🛠️ BÙA MỚI CHUẨN FIX LỖI PC: 
+            // Bỏ hẳn &screenshare=0 đi.
+            // Thay bằng &v=camera để ép nó chỉ nhận nguồn video đầu vào là CAMERA.
+            // Kết hợp &pushsel=2 để lấp đầy giao diện và chỉ cho hiện đúng hộp thoại chọn Camera.
+            const vdoUrl = `https://vdo.ninja/?push=${idInput}&facing=back&width=${width}&height=${height}&videobitrate=${videoBitrate}&scale=100&v=camera&pushsel=2&clean=1`;
 
             // Kích hoạt toàn màn hình trình duyệt
             const docElm = document.documentElement;
             if (docElm.requestFullscreen) docElm.requestFullscreen();
             else if (docElm.webkitRequestFullscreen) docElm.webkitRequestFullscreen();
 
-            // Chuyển sang khung nhúng VDO
+            // Chuyển đổi giao diện sang khung nhúng VDO
             mainContainer.style.display = 'none';
             iframe.src = vdoUrl;
             iframe.style.display = 'block';

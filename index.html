@@ -2,149 +2,227 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KĐQ Live Stream - Ultra Secure</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KĐQ Stream System</title>
     <style>
-        /* RESET & CHỐNG COPY */
-        * { box-sizing: border-box; -webkit-user-select: none; user-select: none; }
-        body { margin: 0; background: #000; font-family: 'Montserrat', sans-serif; overflow: hidden; height: 100vh; }
-
-        /* IFRAME VIDEO */
-        iframe {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            border: none; z-index: 1; pointer-events: auto;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* OVERLAY PLAYER */
-        .overlay {
-            position: fixed; top: 35px; left: 0; width: 100%;
-            display: flex; justify-content: space-between;
-            padding: 0 100px; z-index: 10; pointer-events: none;
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #11141A;
+            color: #ffffff;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        .player {
-            min-width: 140px; 
-            padding: 8px 20px; 
-            font-size: 22px; 
-            font-weight: 500; /* Chữ gầy mảnh hiện đại */
-            letter-spacing: -0.5px;
-            color: #fff;
-            text-transform: uppercase; text-align: center;
-            backdrop-filter: blur(12px); border-radius: 4px;
-            clip-path: polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%);
-            border-bottom: 2px solid rgba(255,255,255,0.2);
-            transition: all 0.5s ease;
+        /* --- GIAO DIỆN MÀN HÌNH CHÍNH (GIỐNG ẢNH MẪU CỦA MÀY) --- */
+        #main-container {
+            width: 100%;
+            max-width: 400 bounds;
+            padding: 0 36px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.3s ease;
         }
 
-        .red { background: linear-gradient(135deg, rgba(220,20,20,0.85), rgba(100,0,0,0.9)); box-shadow: 0 0 15px rgba(255,0,0,0.3); }
-        .blue { background: linear-gradient(135deg, rgba(20,100,220,0.85), rgba(0,30,100,0.9)); box-shadow: 0 0 15px rgba(0,100,255,0.3); }
-
-        /* PANEL NHẬP LIỆU (GLASSMORPHISM) */
-        .panel {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(20px);
-            padding: 20px; border-radius: 16px; display: flex; gap: 15px; z-index: 100;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
-            transition: all 0.5s ease;
+        /* Icon phát sóng phát quang nhẹ */
+        .stream-icon-box {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background-color: rgba(77, 128, 245, 0.06);
+            border: 1.5px solid rgba(77, 128, 245, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 32px;
         }
 
-        input {
-            background: rgba(255, 255, 255, 0.08); color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 12px 15px; border-radius: 8px; outline: none;
-            font-family: 'Montserrat', sans-serif; font-weight: 500;
-            width: 180px; transition: 0.3s;
+        .stream-icon {
+            width: 48px;
+            height: 48px;
+            fill: #4D80F5;
         }
 
-        input:focus { border-color: #00c853; box-shadow: 0 0 15px rgba(0, 200, 83, 0.3); }
-
-        button {
-            background: linear-gradient(135deg, #00c853, #007e33);
-            color: #fff; border: none; padding: 12px 25px;
-            border-radius: 8px; font-weight: 700; cursor: pointer;
-            text-transform: uppercase; letter-spacing: 1px;
-            box-shadow: 0 4px 15px rgba(0, 200, 83, 0.4);
-            transition: 0.3s;
+        /* Tiêu đề */
+        h1 {
+            font-size: 26px;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            text-align: center;
         }
 
-        button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 200, 83, 0.6); }
+        .subtitle {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.4);
+            font-weight: 400;
+            margin-bottom: 50px;
+            text-align: center;
+        }
 
-        @media (max-width: 768px) {
-            .overlay { padding: 0 20px; }
-            .player { min-width: 110px; font-size: 16px; }
-            .panel { width: 90%; flex-direction: column; }
+        /* Ô nhập liệu CHANNEL ID */
+        .input-group {
+            position: relative;
+            width: 100%;
+            margin-bottom: 28px;
+        }
+
+        .input-label {
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background-color: #11141A;
+            padding: 0 6px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #4D80F5;
+            letter-spacing: 0.5px;
+            z-index: 1;
+        }
+
+        .stream-input {
+            width: 100%;
+            height: 65px;
+            background-color: #191C24;
+            border: 1.5px solid rgba(255, 255, 255, 0.12);
+            border-radius: 18px;
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .stream-input:focus {
+            border-color: #4D80F5;
+        }
+
+        /* Nút Bắt đầu phát */
+        .btn-start {
+            width: 100%;
+            height: 58px;
+            background-color: #4D80F5;
+            color: #ffffff;
+            border: none;
+            border-radius: 18px;
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-start:active {
+            background-color: #3b6ed9;
+        }
+
+        /* --- KHUNG WEBVIEW NHÚNG VDO.NINJA --- */
+        #stream-iframe {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none;
+            background-color: #000000;
+            z-index: 10;
+        }
+
+        /* Nút tắt luồng quay lại màn hình chính */
+        #btn-close {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 45px;
+            height: 45px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 20;
         }
     </style>
 </head>
-<body oncontextmenu="return false;">
+<body>
 
-    <iframe id="kdq_stream" src=""></iframe>
+    <div id="main-container">
+        <div class="stream-icon-box">
+            <svg class="stream-icon" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+            </svg>
+        </div>
+        <h1>KĐQ STREAM SYSTEM</h1>
+        <div class="subtitle">KĐQ High-Quality Integration</div>
 
-    <div class="overlay">
-        <div class="player red" id="name1">PLAYER 1</div>
-        <div class="player blue" id="name2">PLAYER 2</div>
+        <div class="input-group">
+            <span class="input-label">CHANNEL ID</span>
+            <input type="text" id="channel-id" class="stream-input" placeholder="Nhập ID..." value="quocdang">
+        </div>
+
+        <button class="btn-start" onclick="startStream()">BẮT ĐẦU PHÁT</button>
     </div>
 
-    <div class="panel" id="panel">
-        <input id="input1" placeholder="Tên Đỏ">
-        <input id="input2" placeholder="Tên Xanh">
-        <button onclick="updateData()">Cập nhật</button>
-    </div>
+    <button id="btn-close" onclick="stopStream()">✕</button>
+    <iframe id="stream-iframe" allow="camera;microphone;autoplay;fullscreen"></iframe>
 
     <script>
-        // 1. GIẤU LINK (Base64)
-        // Link gốc của mày: https://vdo.ninja/?view=quocdang&cleanoutput&noaudio&buffer=0
-        const encoded = "aHR0cHM6Ly92ZG8ubmluamEvP3ZpZXc9cXVvY2RhbmcmY2xlYW5vdXRwdXQmbm9hdWRpbyZidWZmZXI9MA==";
-        document.getElementById("kdq_stream").src = atob(encoded);
+        function startStream() {
+            const idInput = document.getElementById('channel-id').value.trim();
+            if (!idInput) {
+                alert('Nhập ID vào đã mày ơi!');
+                return;
+            }
 
-        const params = new URLSearchParams(window.location.search);
-        const panel = document.getElementById("panel");
-        
-        // Gán tên ban đầu từ URL
-        document.getElementById("name1").innerText = params.get("d") || "TIÊN";
-        document.getElementById("name2").innerText = params.get("x") || "HẬU";
+            const mainContainer = document.getElementById('main-container');
+            const iframe = document.getElementById('stream-iframe');
+            const btnClose = document.getElementById('btn-close');
 
-        // Tự ẩn nếu là chế độ live
-        if(params.get("live") === "1") panel.style.display = "none";
+            // Cấu hình URL VDO.Ninja (ép camera sau, chất lượng cao, tự chạy)
+            const vdoUrl = `https://vdo.ninja/?push=${idInput}&facing=back&quality=0&autostart&clean`;
 
-        // 2. HÀM CẬP NHẬT & BIẾN MẤT
-        function updateData() {
-            const v1 = document.getElementById("input1").value.trim() || "TIÊN";
-            const v2 = document.getElementById("input2").value.trim() || "HẬU";
-            
-            document.getElementById("name1").innerText = v1;
-            document.getElementById("name2").innerText = v2;
-            
-            // Cập nhật URL thầm lặng
-            window.history.pushState({}, '', `?d=${encodeURIComponent(v1)}&x=${encodeURIComponent(v2)}`);
-            
-            // Hiệu ứng biến mất
-            panel.style.opacity = "0";
-            panel.style.pointerEvents = "none";
-            setTimeout(() => { panel.style.display = "none"; }, 500);
+            // Ẩn giao diện chính, hiện khung stream lên toàn màn hình
+            mainContainer.style.display = 'none';
+            iframe.src = vdoUrl;
+            iframe.style.display = 'block';
+            btnClose.style.display = 'flex';
+
+            // Yêu cầu trình duyệt giữ màn hình luôn sáng (nếu trình duyệt hỗ trợ)
+            if (navigator.wakeLock) {
+                navigator.wakeLock.request('screen').catch(err => console.log('WakeLock lỗi:', err));
+            }
         }
 
-        // 3. HIỆN LẠI KHI CẦN (Phím H)
-        document.addEventListener('keydown', function(e) {
-            if (e.key.toLowerCase() === 'h') {
-                panel.style.display = "flex";
-                panel.style.pointerEvents = "auto";
-                setTimeout(() => { panel.style.opacity = "1"; }, 10);
-            }
-            // Nhấn Enter để cập nhật luôn cho tiện
-            if (e.key === 'Enter' && panel.style.display !== 'none') {
-                updateData();
-            }
-        });
+        function stopStream() {
+            const mainContainer = document.getElementById('main-container');
+            const iframe = document.getElementById('stream-iframe');
+            const btnClose = document.getElementById('btn-close');
 
-        // 4. BẢO MẬT: CHẶN F12 / CTRL+U
-        document.onkeydown = function(e) {
-            if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67)) || (e.ctrlKey && e.keyCode == 85)) {
-                return false;
-            }
-        };
+            // Tắt luồng, reset iframe và hiện lại màn hình nhập ID
+            iframe.src = '';
+            iframe.style.display = 'none';
+            btnClose.style.display = 'none';
+            mainContainer.style.display = 'flex';
+        }
     </script>
 </body>
 </html>

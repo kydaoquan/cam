@@ -35,7 +35,6 @@
             justify-content: center;
         }
 
-        /* Icon phát sóng */
         .stream-icon-box {
             width: 110px;
             height: 110px;
@@ -70,7 +69,6 @@
             text-align: center;
         }
 
-        /* Khung bọc các ô nhập liệu */
         .input-group {
             position: relative;
             width: 100%;
@@ -90,7 +88,6 @@
             z-index: 1;
         }
 
-        /* Ô nhập Channel ID */
         .stream-input {
             width: 100%;
             height: 65px;
@@ -109,7 +106,6 @@
             border-color: #4D80F5;
         }
 
-        /* Ô chọn Chất lượng (Dropdown/Select) */
         .stream-select {
             width: 100%;
             height: 65px;
@@ -120,10 +116,10 @@
             font-size: 20px;
             font-weight: bold;
             text-align: center;
-            text-align-last: center; /* Căn giữa chữ trong select */
+            text-align-last: center;
             outline: none;
             cursor: pointer;
-            appearance: none; /* Ẩn mũi tên mặc định của trình duyệt */
+            appearance: none;
             -webkit-appearance: none;
             transition: border-color 0.2s;
         }
@@ -132,7 +128,6 @@
             border-color: #4D80F5;
         }
 
-        /* Nút Bắt đầu phát */
         .btn-start {
             width: 100%;
             height: 58px;
@@ -152,36 +147,37 @@
             background-color: #3b6ed9;
         }
 
-        /* --- KHUNG STREAM IFRAME --- */
+        /* --- KHUNG STREAM IFRAME TOÀN MÀN HÌNH --- */
         #stream-iframe {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             border: none;
             display: none;
             background-color: #000000;
             z-index: 10;
         }
 
+        /* Nút đóng nổi hẳn lên trên góc */
         #btn-close {
             position: fixed;
-            top: 20px;
-            left: 20px;
-            width: 45px;
-            height: 45px;
-            background-color: rgba(0, 0, 0, 0.5);
-            border: none;
+            top: 24px;
+            left: 24px;
+            width: 48px;
+            height: 48px;
+            background-color: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 50%;
             color: white;
-            font-size: 24px;
-            font-weight: bold;
+            font-size: 20px;
             display: none;
             justify-content: center;
             align-items: center;
             cursor: pointer;
             z-index: 20;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
     </style>
 </head>
@@ -230,33 +226,43 @@
             const iframe = document.getElementById('stream-iframe');
             const btnClose = document.getElementById('btn-close');
 
-            // Khởi tạo các biến cấu hình thông số kỹ thuật của VDO.Ninja
-            let videoBitrate = 4000; // Mặc định bitrate cho FHD
+            // Cấu hình thông số phân giải & bitrate
+            let videoBitrate = 4000;
             let width = 1920;
             let height = 1080;
 
             if (qualityInput === 'hd') {
-                videoBitrate = 2000;  // 2000 kbps cho 720p mượt mà
+                videoBitrate = 2000;
                 width = 1280;
                 height = 720;
             } else if (qualityInput === '2k') {
-                videoBitrate = 8000;  // 8000 kbps cho nét căng đét 2K
+                videoBitrate = 8000;
                 width = 2560;
                 height = 1440;
             }
 
-            // Tạo link nhúng VDO.Ninja động dựa trên cấu hình đã chọn
-            // &videobitrate -> Khóa băng thông trần
-            // &width và &height -> Ép trình duyệt render đúng độ phân giải
-            const vdoUrl = `https://vdo.ninja/?push=${idInput}&facing=back&width=${width}&height=${height}&videobitrate=${videoBitrate}&autostart&clean`;
+            // Thêm &scale=100 để video camera co giãn bao phủ 100% diện tích màn hình điện thoại
+            const vdoUrl = `https://vdo.ninja/?push=${idInput}&facing=back&width=${width}&height=${height}&videobitrate=${videoBitrate}&scale=100&autostart&clean`;
 
-            // Chuyển đổi giao diện sang màn hình stream
+            // KÍCH HOẠT CHẾ ĐỘ TOÀN MÀN HÌNH CỦA TRÌNH DUYỆT
+            const docElm = document.documentElement;
+            if (docElm.requestFullscreen) {
+                docElm.requestFullscreen();
+            } else if (docElm.mozRequestFullScreen) { /* Firefox */
+                docElm.mozRequestFullScreen();
+            } else if (docElm.webkitRequestFullscreen) { /* Chrome, Safari và Opera */
+                docElm.webkitRequestFullscreen();
+            } else if (docElm.msRequestFullscreen) { /* IE/Edge */
+                docElm.msRequestFullscreen();
+            }
+
+            // Chuyển đổi hiển thị giao diện
             mainContainer.style.display = 'none';
             iframe.src = vdoUrl;
             iframe.style.display = 'block';
             btnClose.style.display = 'flex';
 
-            // Giữ màn hình luôn sáng
+            // Giữ sáng màn hình
             if (navigator.wakeLock) {
                 navigator.wakeLock.request('screen').catch(err => console.log('WakeLock lỗi:', err));
             }
@@ -267,6 +273,18 @@
             const iframe = document.getElementById('stream-iframe');
             const btnClose = document.getElementById('btn-close');
 
+            // THOÁT CHẾ ĐỘ TOÀN MÀN HÌNH
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+
+            // Trả lại giao diện nhập ID ban đầu
             iframe.src = '';
             iframe.style.display = 'none';
             btnClose.style.display = 'none';

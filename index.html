@@ -24,7 +24,7 @@
             align-items: center;
         }
 
-        /* --- GIAO DIỆN MÀN HÌNH CHÍNH (ĐẸP CHUẨN) --- */
+        /* --- GIAO DIỆN MÀN HÌNH CHÍNH --- */
         #main-container {
             width: 100%;
             max-width: 400px;
@@ -33,8 +33,6 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            position: relative;
-            z-index: 1;
         }
 
         .stream-icon-box {
@@ -87,7 +85,7 @@
             font-weight: bold;
             color: #4D80F5;
             letter-spacing: 0.5px;
-            z-index: 2;
+            z-index: 1;
         }
 
         .stream-input {
@@ -123,19 +121,12 @@
             cursor: pointer;
             appearance: none;
             -webkit-appearance: none;
-        }
-
-        /* Khung bọc nút phát để tạo vùng bấm tàng hình */
-        .btn-wrapper {
-            position: relative;
-            width: 100%;
-            height: 58px;
-            margin-top: 10px;
+            transition: border-color 0.2s;
         }
 
         .btn-start {
             width: 100%;
-            height: 100%;
+            height: 58px;
             background-color: #4D80F5;
             color: #ffffff;
             border: none;
@@ -144,13 +135,11 @@
             font-weight: bold;
             letter-spacing: 0.5px;
             cursor: pointer;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
+            margin-top: 10px;
+            transition: background-color 0.2s;
         }
 
-        /* --- KHUNG IFRAME PHÉP THUẬT --- */
+        /* --- KHUNG STREAM IFRAME TOÀN MÀN HÌNH --- */
         #stream-iframe {
             position: fixed;
             top: 0;
@@ -158,21 +147,9 @@
             width: 100vw;
             height: 100vh;
             border: none;
+            display: none;
             background-color: #000000;
             z-index: 10;
-            /* Ban đầu khi chưa bấm phát: thu nhỏ, biến thành tàng hình nằm đè lên nút Bắt Đầu Phát */
-            opacity: 0; 
-            pointer-events: auto;
-        }
-
-        /* Lớp CSS kích hoạt khi vào trận live chính thức */
-        #stream-iframe.live-active {
-            opacity: 1 !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            top: 0 !important;
-            left: 0 !important;
-            border-radius: 0 !important;
         }
 
         #btn-close {
@@ -212,28 +189,32 @@
 
         <div class="input-group">
             <span class="input-label">QUALITY RESOLUTION</span>
-            <select id="stream-quality" class="stream-select" onchange="updateStreamUrl()">
+            <select id="stream-quality" class="stream-select">
                 <option value="hd">HD (720p - Tiết kiệm mạng)</option>
                 <option value="fhd" selected>FULL HD (1080p - Chuẩn căng)</option>
                 <option value="2k">2K (1440p - Cực nét)</option>
             </select>
         </div>
 
-        <div class="btn-wrapper" id="button-area">
-            <button class="btn-start">BẮT ĐẦU PHÁT</button>
-        </div>
+        <button class="btn-start" onclick="startStream()">BẮT ĐẦU PHÁT</button>
     </div>
 
     <button id="btn-close" onclick="stopStream()">✕</button>
-    
     <iframe id="stream-iframe" allow="camera *; microphone *; autoplay *; fullscreen *" allowfullscreen></iframe>
 
     <script>
-        // Hàm cập nhật URL liên tục theo ID và Chất lượng mà mày nhập
-        function updateStreamUrl() {
-            const idInput = document.getElementById('channel-id').value.trim() || 'quocdang';
+        function startStream() {
+            const idInput = document.getElementById('channel-id').value.trim();
             const qualityInput = document.getElementById('stream-quality').value;
+            
+            if (!idInput) {
+                alert('Nhập ID vào đã mày ơi!');
+                return;
+            }
+
+            const mainContainer = document.getElementById('main-container');
             const iframe = document.getElementById('stream-iframe');
+            const btnClose = document.getElementById('btn-close');
 
             let videoBitrate = 4000;
             let width = 1920;
@@ -249,56 +230,27 @@
                 height = 1440;
             }
 
-            // Ép tham số để dọn sạch bóng dáng của Screen Share và nhảy thẳng vào Camera
-            iframe.src = `https://vdo.ninja/?push=${idInput}&facing=back&width=${width}&height=${height}&videobitrate=${videoBitrate}&scale=100&autostart=1&clean=1&pushsel=1&m=0&o=0`;
-        }
+            // 🛠️ ĐOẠN CODE BÙA CHÚ Ở ĐÂY:
+            // &screenshare=0 -> Tắt hoàn toàn tính năng chia sẻ màn hình của VDO
+            // &pushsel=1 -> Ép hiện bảng chọn Camera đơn lẻ lên giữa màn hình tối
+            const vdoUrl = `https://vdo.ninja/?push=${idInput}&facing=back&width=${width}&height=${height}&videobitrate=${videoBitrate}&scale=100&screenshare=0&pushsel=1&clean=1`;
 
-        // Định vị cái Iframe tàng hình nằm đè khít lên nút Bắt Đầu Phát
-        function positionIframeOverButton() {
-            const btnArea = document.getElementById('button-area');
-            const iframe = document.getElementById('stream-iframe');
-            if(iframe.classList.contains('live-active')) return;
+            // Kích hoạt toàn màn hình trình duyệt
+            const docElm = document.documentElement;
+            if (docElm.requestFullscreen) docElm.requestFullscreen();
+            else if (docElm.webkitRequestFullscreen) docElm.webkitRequestFullscreen();
 
-            const rect = btnArea.getBoundingClientRect();
-            
-            // Ép kích thước khung nhúng bằng đúng kích thước cái nút xanh của mày
-            iframe.style.width = rect.width + 'px';
-            iframe.style.height = rect.height + 'px';
-            iframe.style.top = rect.top + 'px';
-            iframe.style.left = rect.left + 'px';
-            iframe.style.borderRadius = '18px'; // Bo góc giống nút luôn
-        }
+            // Chuyển sang khung nhúng VDO
+            mainContainer.style.display = 'none';
+            iframe.src = vdoUrl;
+            iframe.style.display = 'block';
+            btnClose.style.display = 'flex';
 
-        // Khởi tạo vị trí ban đầu và cập nhật URL
-        updateStreamUrl();
-        setTimeout(positionIframeOverButton, 500);
-        window.addEventListener('resize', positionIframeOverButton);
-        document.getElementById('channel-id').addEventListener('input', updateStreamUrl);
-
-        // Lắng nghe sự kiện click của VDO.Ninja bên trong Iframe để kích hoạt toàn màn hình
-        window.addEventListener('blur', function() {
-            // Kiểm tra xem có phải người dùng vừa chạm trúng khu vực nút bấm (iframe tàng hình) hay không
-            if (document.activeElement === document.getElementById('stream-iframe')) {
-                const iframe = document.getElementById('stream-iframe');
-                const mainContainer = document.getElementById('main-container');
-                const btnClose = document.getElementById('btn-close');
-
-                // Bật chế độ Fullscreen của trình duyệt
-                const docElm = document.documentElement;
-                if (docElm.requestFullscreen) docElm.requestFullscreen();
-                else if (docElm.webkitRequestFullscreen) docElm.webkitRequestFullscreen();
-
-                // Biến hình Iframe từ tàng hình thành Full màn hình hiển thị Camera
-                iframe.classList.add('live-active');
-                mainContainer.style.display = 'none';
-                btnClose.style.display = 'flex';
-
-                // Giữ sáng màn hình không cho ngủ máy
-                if (navigator.wakeLock) {
-                    navigator.wakeLock.request('screen').catch(err => console.log(err));
-                }
+            // Giữ sáng màn hình
+            if (navigator.wakeLock) {
+                navigator.wakeLock.request('screen').catch(err => console.log(err));
             }
-        });
+        }
 
         function stopStream() {
             const mainContainer = document.getElementById('main-container');
@@ -308,14 +260,10 @@
             if (document.exitFullscreen) document.exitFullscreen();
             else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
 
-            // Reset trạng thái Iframe về lại cái nút tàng hình
-            iframe.classList.remove('live-active');
-            updateStreamUrl();
-            setTimeout(positionIframeOverButton, 300);
-            
+            iframe.src = '';
+            iframe.style.display = 'none';
             btnClose.style.display = 'none';
             mainContainer.style.display = 'flex';
-            window.focus();
         }
     </script>
 </body>

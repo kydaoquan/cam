@@ -148,16 +148,24 @@
         }
 
         /* --- KHUNG STREAM IFRAME TOÀN MÀN HÌNH --- */
-        #stream-iframe {
+        #iframe-wrapper {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            border: none;
             display: none;
+            overflow: hidden;
             background-color: #000000;
             z-index: 10;
+        }
+
+        #stream-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            transition: transform 0.1s ease-out; /* Tạo hiệu ứng zoom mượt */
+            transform-origin: center center;
         }
 
         #btn-close {
@@ -177,6 +185,64 @@
             cursor: pointer;
             z-index: 20;
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        /* --- THANH ĐIỀU KHIỂN ZOOM (MỚI) --- */
+        #zoom-control-box {
+            position: fixed;
+            right: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 220px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 25px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 0;
+            z-index: 20;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+        }
+
+        .zoom-btn {
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: bold;
+            background: none;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            height: 35px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Biến cái input range mặc định thành thanh trượt dọc tinh tế */
+        .zoom-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 120px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            transform: rotate(-90deg); /* Xoay dọc thanh trượt */
+            margin: 45px 0;
+            outline: none;
+        }
+
+        .zoom-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #4D80F5;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(77, 128, 245, 0.8);
         }
     </style>
 </head>
@@ -214,23 +280,42 @@
     </div>
 
     <button id="btn-close" onclick="stopStream()">✕</button>
-    <iframe id="stream-iframe" allow="camera *; microphone *; autoplay *; fullscreen *" allowfullscreen></iframe>
+
+    <div id="zoom-control-box">
+        <button class="zoom-btn" onclick="changeZoomBtn(0.2)">+</button>
+        <input type="range" id="zoom-slider" class="zoom-slider" min="1" max="3" step="0.1" value="1" oninput="applyZoom(this.value)">
+        <button class="zoom-btn" onclick="changeZoomBtn(-0.2)">-</button>
+    </div>
+    
+    <div id="iframe-wrapper">
+        <iframe id="stream-iframe" src="" allow="camera *; microphone *; autoplay *; fullscreen *" allowfullscreen></iframe>
+    </div>
 
     <script>
         let wakeLockSentinel = null;
 
-        // Hàm tự động nhảy số Bitrate gợi ý khi người dùng đổi Độ phân giải
         function autoChangeBitrate() {
             const qualityInput = document.getElementById('stream-quality').value;
             const bitrateInput = document.getElementById('stream-bitrate');
-            
-            if (qualityInput === 'hd') {
-                bitrateInput.value = "2500"; // Gợi ý cho 720p
-            } else if (qualityInput === 'fhd') {
-                bitrateInput.value = "6000"; // Gợi ý cho 1080p theo ý mày
-            } else if (qualityInput === '2k') {
-                bitrateInput.value = "8000"; // Gợi ý cho 2K
-            }
+            if (qualityInput === 'hd') bitrateInput.value = "2500";
+            else if (qualityInput === 'fhd') bitrateInput.value = "6000";
+            else if (qualityInput === '2k') bitrateInput.value = "8000";
+        }
+
+        // Hàm thực hiện kéo to thu nhỏ Iframe bằng CSS Transform
+        function applyZoom(value) {
+            const iframe = document.getElementById('stream-iframe');
+            iframe.style.transform = `scale(${value})`;
+        }
+
+        // Hàm xử lý khi bấm nút + hoặc -
+        function changeZoomBtn(step) {
+            const slider = document.getElementById('zoom-slider');
+            let newValue = parseFloat(slider.value) + step;
+            if (newValue < 1) newValue = 1;
+            if (newValue > 3) newValue = 3;
+            slider.value = newValue;
+            applyZoom(newValue);
         }
 
         function startStream() {
@@ -238,76 +323,63 @@
             const qualityInput = document.getElementById('stream-quality').value;
             let customBitrate = document.getElementById('stream-bitrate').value.trim();
             
-            if (!idInput) {
-                alert('Nhập ID vào đã mày ơi!');
-                return;
-            }
-
-            if (!customBitrate || isNaN(customBitrate) || customBitrate <= 0) {
-                alert('Vui lòng nhập số Bitrate hợp lệ (ví dụ: 6000)!');
-                return;
-            }
+            if (!idInput) { alert('Nhập ID vào đã mày ơi!'); return; }
+            if (!customBitrate || isNaN(customBitrate) || customBitrate <= 0) { alert('Nhập Bitrate!'); return; }
 
             const mainContainer = document.getElementById('main-container');
+            const wrapper = document.getElementById('iframe-wrapper');
             const iframe = document.getElementById('stream-iframe');
             const btnClose = document.getElementById('btn-close');
+            const zoomBox = document.getElementById('zoom-control-box');
 
-            // Cấu hình Kích thước khung hình
-            let width = 1920;
-            let height = 1080;
+            let width = 1920; let height = 1080;
+            if (qualityInput === 'hd') { width = 1280; height = 720; } 
+            else if (qualityInput === '2k') { width = 2560; height = 1440; }
 
-            if (qualityInput === 'hd') {
-                width = 1280;
-                height = 720;
-            } else if (qualityInput === '2k') {
-                width = 2560;
-                height = 1440;
-            }
+            const secretDomain = atob("aHR0cHM6Ly92ZG8ubmluamEv"); 
+            const vdoUrl = `${secretDomain}?push=${idInput}&facing=back&width=${width}&height=${height}&videobitrate=${customBitrate}&scale=100&autostart=1&clean=1`;
 
-            // Gán thẳng số Bitrate người dùng vừa gõ vào link URL VDO.Ninja
-            const vdoUrl = `https://vdo.ninja/?push=${idInput}&facing=back&width=${width}&height=${height}&videobitrate=${customBitrate}&scale=100&autostart=1&clean=1`;
-
-            // KÍCH HOẠT CHẾ ĐỘ TOÀN MÀN HÌNH
+            // Toàn màn hình
             const docElm = document.documentElement;
-            if (docElm.requestFullscreen) {
-                docElm.requestFullscreen();
-            } else if (docElm.webkitRequestFullscreen) {
-                docElm.webkitRequestFullscreen();
-            }
+            if (docElm.requestFullscreen) docElm.requestFullscreen();
+            else if (docElm.webkitRequestFullscreen) docElm.webkitRequestFullscreen();
 
-            // Chuyển đổi hiển thị giao diện
+            // Reset thanh zoom về mức 1x ban đầu khi khởi động
+            document.getElementById('zoom-slider').value = 1;
+            iframe.style.transform = "scale(1)";
+
+            // Hiện luồng và thanh công cụ zoom
             mainContainer.style.display = 'none';
-            iframe.src = vdoUrl;
-            iframe.style.display = 'block';
+            iframe.src = vdoUrl; 
+            wrapper.style.display = 'block';
             btnClose.style.display = 'flex';
+            zoomBox.style.display = 'flex'; // Hiện thanh gạt zoom bên góc phải
 
-            // Giữ sáng màn hình không cho ngủ máy
             if (navigator.wakeLock) {
-                navigator.wakeLock.request('screen')
-                    .then(lock => { wakeLockSentinel = lock; })
-                    .catch(err => console.log('WakeLock lỗi:', err));
+                navigator.wakeLock.request('screen').catch(err => console.log(err));
             }
         }
 
         function stopStream() {
             const mainContainer = document.getElementById('main-container');
+            const wrapper = document.getElementById('iframe-wrapper');
             const iframe = document.getElementById('stream-iframe');
             const btnClose = document.getElementById('btn-close');
+            const zoomBox = document.getElementById('zoom-control-box');
 
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            }
-
-            if (wakeLockSentinel !== null) {
-                wakeLockSentinel.release().then(() => { wakeLockSentinel = null; });
-            }
+            if (document.exitFullscreen) document.exitFullscreen();
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
 
             iframe.src = '';
-            iframe.style.display = 'none';
+            wrapper.style.display = 'none';
             btnClose.style.display = 'none';
+            zoomBox.style.display = 'none';
             mainContainer.style.display = 'flex';
+        }
+
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.onkeydown = function(e) {
+            if (e.keyCode == 123) return false;
         }
     </script>
 </body>

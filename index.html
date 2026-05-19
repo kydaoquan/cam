@@ -139,7 +139,7 @@
             transition: background-color 0.2s;
         }
 
-        /* --- KHUNG STREAM IFRAME TOÀN MÀN HÌNH --- */
+        /* --- KHUNG STREAM TOÀN MÀN HÌNH --- */
         #stream-iframe {
             position: fixed;
             top: 0;
@@ -169,7 +169,7 @@
             cursor: pointer;
             z-index: 20;
         }
-    </style>
+    </script>
 </head>
 <body>
 
@@ -196,22 +196,36 @@
             </select>
         </div>
 
-        <button class="btn-start" onclick="startStream()">BẮT ĐẦU PHÁT</button>
+        <button class="btn-start" onclick="initiateStream()">BẮT ĐẦU PHÁT</button>
     </div>
 
     <button id="btn-close" onclick="stopStream()">✕</button>
     <iframe id="stream-iframe" allow="camera *; microphone *; autoplay *; fullscreen *" allowfullscreen></iframe>
 
     <script>
-        function startStream() {
+        async function initiateStream() {
             const idInput = document.getElementById('channel-id').value.trim();
-            const qualityInput = document.getElementById('stream-quality').value;
-            
             if (!idInput) {
                 alert('Nhập ID vào đã mày ơi!');
                 return;
             }
 
+            // 🛠️ MẸO ÉP TRÌNH DUYỆT KHỞI ĐỘNG CAM TRƯỚC KHI LOAD VDO.NINJA
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: true });
+                // Có quyền rồi thì tắt luồng tạm thời này đi để nhường quyền lại cho Iframe VDO.Ninja
+                stream.getTracks().forEach(track => track.stop());
+                
+                // Chạy hàm load stream chính thức
+                startTrackStream(idInput);
+            } catch (err) {
+                alert('Mày chưa cấp quyền Camera/Micro trên trình duyệt rồi, kiểm tra lại cài đặt trang web nhé!');
+                console.error("Lỗi cấp quyền:", err);
+            }
+        }
+
+        function startTrackStream(idInput) {
+            const qualityInput = document.getElementById('stream-quality').value;
             const mainContainer = document.getElementById('main-container');
             const iframe = document.getElementById('stream-iframe');
             const btnClose = document.getElementById('btn-close');
@@ -230,24 +244,21 @@
                 height = 1440;
             }
 
-            // 🛠️ BÙA MỚI CHUẨN FIX LỖI PC: 
-            // Bỏ hẳn &screenshare=0 đi.
-            // Thay bằng &v=camera để ép nó chỉ nhận nguồn video đầu vào là CAMERA.
-            // Kết hợp &pushsel=2 để lấp đầy giao diện và chỉ cho hiện đúng hộp thoại chọn Camera.
-            const vdoUrl = `https://vdo.ninja/?push=${idInput}&facing=back&width=${width}&height=${height}&videobitrate=${videoBitrate}&scale=100&v=camera&pushsel=2&clean=1`;
+            // URL tối ưu hóa: Bỏ qua bước chọn thiết bị, tự chạy luồng thô camera sau cực mượt
+            const vdoUrl = `https://vdo.ninja/?push=${idInput}&facing=back&width=${width}&height=${height}&videobitrate=${videoBitrate}&scale=100&autostart=1&clean=1&pushsel=1&m=0&o=0`;
 
-            // Kích hoạt toàn màn hình trình duyệt
+            // Bật toàn màn hình
             const docElm = document.documentElement;
             if (docElm.requestFullscreen) docElm.requestFullscreen();
             else if (docElm.webkitRequestFullscreen) docElm.webkitRequestFullscreen();
 
-            // Chuyển đổi giao diện sang khung nhúng VDO
-            mainContainer.style.display = 'none';
+            // Đổ link vào iframe và hiển thị
             iframe.src = vdoUrl;
+            mainContainer.style.display = 'none';
             iframe.style.display = 'block';
             btnClose.style.display = 'flex';
 
-            // Giữ sáng màn hình
+            // Chống tắt màn hình
             if (navigator.wakeLock) {
                 navigator.wakeLock.request('screen').catch(err => console.log(err));
             }

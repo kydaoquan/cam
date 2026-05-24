@@ -327,7 +327,7 @@
             const secretDomain = atob("aHR0cHM6Ly92ZG8ubmluamEv"); 
             
             // 🔒 QUAN TRỌNG: Thêm tham số &control và &zoom vào URL để VDO cho phép điều khiển camera từ xa
-            const vdoUrl = `${secretDomain}?push=${idInput}&facing=back&width=${width}&height=${height}&videobitrate=${customBitrate}&scale=100&autostart=1&clean=1&zoom&control&buttons=0`;
+            const vdoUrl = `${secretDomain}?push=${idInput}&facing=back&webcam&width=${width}&height=${height}&videobitrate=${customBitrate}&scale=100&autostart=1&clean=1&zoom&control&buttons=0`;
 
             const docElm = document.documentElement;
             if (docElm.requestFullscreen) docElm.requestFullscreen();

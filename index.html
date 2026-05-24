@@ -2,371 +2,624 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
     <title>KĐQ Stream System</title>
+
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent;
+        *{
+            box-sizing:border-box;
+            margin:0;
+            padding:0;
+            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+            -webkit-tap-highlight-color:transparent;
         }
 
-        body, html {
-            width: 100%;
-            height: 100%;
-            background-color: #11141A;
-            color: #ffffff;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        body,html{
+            width:100%;
+            height:100%;
+            background-color:#11141A;
+            color:#ffffff;
+            overflow:hidden;
+
+            display:flex;
+            justify-content:center;
+            align-items:center;
         }
 
-        /* --- GIAO DIỆN MÀN HÌNH CHÍNH --- */
-        #main-container {
-            width: 100%;
-            max-width: 400px;
-            padding: 0 36px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+        /* =========================
+           MAIN SCREEN
+        ========================== */
+
+        #main-container{
+            width:100%;
+            max-width:400px;
+
+            padding:0 36px;
+
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
         }
 
-        .stream-icon-box {
-            width: 110px;
-            height: 110px;
-            border-radius: 50%;
-            background-color: rgba(77, 128, 245, 0.06);
-            border: 1.5px solid rgba(77, 128, 245, 0.3);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 32px;
+        .stream-icon-box{
+            width:110px;
+            height:110px;
+
+            border-radius:50%;
+
+            background-color:rgba(77,128,245,0.06);
+
+            border:1.5px solid rgba(77,128,245,0.3);
+
+            display:flex;
+            justify-content:center;
+            align-items:center;
+
+            margin-bottom:32px;
         }
 
-        .stream-icon {
-            width: 48px;
-            height: 48px;
-            fill: #4D80F5;
+        .stream-icon{
+            width:48px;
+            height:48px;
+            fill:#4D80F5;
         }
 
-        h1 {
-            font-size: 26px;
-            font-weight: 900;
-            letter-spacing: 0.5px;
-            margin-bottom: 10px;
-            text-align: center;
+        h1{
+            font-size:26px;
+            font-weight:900;
+            letter-spacing:0.5px;
+
+            margin-bottom:10px;
+
+            text-align:center;
         }
 
-        .subtitle {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.4);
-            font-weight: 400;
-            margin-bottom: 40px;
-            text-align: center;
+        .subtitle{
+            font-size:14px;
+
+            color:rgba(255,255,255,0.4);
+
+            font-weight:400;
+
+            margin-bottom:40px;
+
+            text-align:center;
         }
 
-        .input-group {
-            position: relative;
-            width: 100%;
-            margin-bottom: 24px;
+        .input-group{
+            position:relative;
+
+            width:100%;
+
+            margin-bottom:24px;
         }
 
-        .input-label {
-            position: absolute;
-            top: -10px;
-            left: 20px;
-            background-color: #11141A;
-            padding: 0 6px;
-            font-size: 13px;
-            font-weight: bold;
-            color: #4D80F5;
-            letter-spacing: 0.5px;
-            z-index: 1;
+        .input-label{
+            position:absolute;
+
+            top:-10px;
+            left:20px;
+
+            background-color:#11141A;
+
+            padding:0 6px;
+
+            font-size:13px;
+            font-weight:bold;
+
+            color:#4D80F5;
+
+            letter-spacing:0.5px;
+
+            z-index:1;
         }
 
-        .stream-input {
-            width: 100%;
-            height: 65px;
-            background-color: #191C24;
-            border: 1.5px solid rgba(255, 255, 255, 0.12);
-            border-radius: 18px;
-            color: #ffffff;
-            font-size: 22px;
-            font-weight: bold;
-            text-align: center;
-            outline: none;
-            transition: border-color 0.2s;
+        .stream-input{
+            width:100%;
+            height:65px;
+
+            background-color:#191C24;
+
+            border:1.5px solid rgba(255,255,255,0.12);
+
+            border-radius:18px;
+
+            color:#ffffff;
+
+            font-size:22px;
+            font-weight:bold;
+
+            text-align:center;
+
+            outline:none;
+
+            transition:border-color 0.2s;
         }
 
-        .stream-input:focus {
-            border-color: #4D80F5;
+        .stream-input:focus{
+            border-color:#4D80F5;
         }
 
-        .stream-select {
-            width: 100%;
-            height: 65px;
-            background-color: #191C24;
-            border: 1.5px solid rgba(255, 255, 255, 0.12);
-            border-radius: 18px;
-            color: #ffffff;
-            font-size: 20px;
-            font-weight: bold;
-            text-align: center;
-            text-align-last: center;
-            outline: none;
-            cursor: pointer;
-            appearance: none;
-            -webkit-appearance: none;
-            transition: border-color 0.2s;
+        .stream-select{
+            width:100%;
+            height:65px;
+
+            background-color:#191C24;
+
+            border:1.5px solid rgba(255,255,255,0.12);
+
+            border-radius:18px;
+
+            color:#ffffff;
+
+            font-size:20px;
+            font-weight:bold;
+
+            text-align:center;
+            text-align-last:center;
+
+            outline:none;
+
+            cursor:pointer;
+
+            appearance:none;
+            -webkit-appearance:none;
+
+            transition:border-color 0.2s;
         }
 
-        .stream-select:focus {
-            border-color: #4D80F5;
+        .stream-select:focus{
+            border-color:#4D80F5;
         }
 
-        .btn-start {
-            width: 100%;
-            height: 58px;
-            background-color: #4D80F5;
-            color: #ffffff;
-            border: none;
-            border-radius: 18px;
-            font-size: 18px;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: background-color 0.2s;
+        .btn-start{
+            width:100%;
+            height:58px;
+
+            background-color:#4D80F5;
+
+            color:#ffffff;
+
+            border:none;
+
+            border-radius:18px;
+
+            font-size:18px;
+            font-weight:bold;
+
+            letter-spacing:0.5px;
+
+            cursor:pointer;
+
+            margin-top:10px;
+
+            transition:background-color 0.2s;
         }
 
-        .btn-start:active {
-            background-color: #3b6ed9;
+        .btn-start:active{
+            background-color:#3b6ed9;
         }
 
-        /* --- KHUNG STREAM IFRAME TOÀN MÀN HÌNH --- */
-        #stream-iframe {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            border: none;
-            display: none;
-            background-color: #000000;
-            z-index: 10;
+        /* =========================
+           STREAM IFRAME
+        ========================== */
+
+        #stream-iframe{
+            position:fixed;
+
+            top:0;
+            left:0;
+
+            width:100vw;
+            height:100vh;
+
+            border:none;
+
+            display:none;
+
+            background-color:#000000;
+
+            z-index:10;
+
+            transform:translateZ(0);
+            will-change:transform;
+            backface-visibility:hidden;
         }
 
-        #btn-close {
-            position: fixed;
-            top: 24px;
-            left: 24px;
-            width: 48px;
-            height: 48px;
-            background-color: rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            color: white;
-            font-size: 20px;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            z-index: 20;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        }
+        /* =========================
+           CLOSE BUTTON
+        ========================== */
 
-        /* --- THANH ĐIỀU KHIỂN ZOOM DỌC --- */
-        #zoom-control-box {
-            position: fixed;
-            right: 24px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 50px;
-            height: 220px;
-            background-color: rgba(0, 0, 0, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 25px;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            padding: 15px 0;
-            z-index: 20;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
-        }
+        #btn-close{
+            position:fixed;
 
-        .zoom-btn {
-            color: #ffffff;
-            font-size: 22px;
-            font-weight: bold;
-            background: none;
-            border: none;
-            cursor: pointer;
-            width: 100%;
-            height: 35px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+            top:24px;
+            left:24px;
 
-        .zoom-slider {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 120px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 2px;
-            transform: rotate(-90deg);
-            margin: 45px 0;
-            outline: none;
-        }
+            width:48px;
+            height:48px;
 
-        .zoom-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #4D80F5;
-            cursor: pointer;
-            box-shadow: 0 0 8px rgba(77, 128, 245, 0.8);
+            background-color:rgba(0,0,0,0.6);
+
+            border:1px solid rgba(255,255,255,0.2);
+
+            border-radius:50%;
+
+            color:white;
+
+            font-size:20px;
+
+            display:none;
+
+            justify-content:center;
+            align-items:center;
+
+            cursor:pointer;
+
+            z-index:20;
+
+            box-shadow:0 4px 12px rgba(0,0,0,0.5);
         }
     </style>
 </head>
+
 <body>
 
     <div id="main-container">
+
         <div class="stream-icon-box">
+
             <svg class="stream-icon" viewBox="0 0 24 24">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
             </svg>
+
         </div>
+
         <h1>KĐQ STREAM SYSTEM</h1>
-        <div class="subtitle">KĐQ High-Quality Integration</div>
 
-        <div class="input-group">
-            <span class="input-label">CHANNEL ID</span>
-            <input type="text" id="channel-id" class="stream-input" placeholder="Nhập ID..." value="quocdang">
+        <div class="subtitle">
+            KĐQ High-Quality Integration
         </div>
 
+        <!-- CHANNEL ID -->
+
         <div class="input-group">
-            <span class="input-label">QUALITY RESOLUTION</span>
-            <select id="stream-quality" class="stream-select" onchange="autoChangeBitrate()">
-                <option value="hd">HD (720p - Tiết kiệm mạng)</option>
-                <option value="fhd" selected>FULL HD (1080p - Chuẩn căng)</option>
-                <option value="2k">2K (1440p - Cực nét)</option>
+
+            <span class="input-label">
+                CHANNEL ID
+            </span>
+
+            <input
+                type="text"
+                id="channel-id"
+                class="stream-input"
+                placeholder="Nhập ID..."
+                value="quocdang"
+            >
+
+        </div>
+
+        <!-- QUALITY -->
+
+        <div class="input-group">
+
+            <span class="input-label">
+                QUALITY RESOLUTION
+            </span>
+
+            <select
+                id="stream-quality"
+                class="stream-select"
+                onchange="autoChangeBitrate()"
+            >
+
+                <option value="hd">
+                    HD (720p - Tiết kiệm mạng)
+                </option>
+
+                <option value="fhd" selected>
+                    FULL HD (1080p - Chuẩn căng)
+                </option>
+
+                <option value="2k">
+                    2K (1440p - Cực nét)
+                </option>
+
             </select>
+
         </div>
+
+        <!-- BITRATE -->
 
         <div class="input-group">
-            <span class="input-label">VIDEO BITRATE (KBPS)</span>
-            <input type="number" id="stream-bitrate" class="stream-input" placeholder="Ví dụ: 6000" value="6000">
+
+            <span class="input-label">
+                VIDEO BITRATE (KBPS)
+            </span>
+
+            <input
+                type="number"
+                id="stream-bitrate"
+                class="stream-input"
+                placeholder="Ví dụ: 6000"
+                value="6000"
+            >
+
         </div>
 
-        <button class="btn-start" onclick="startStream()">BẮT ĐẦU PHÁT</button>
+        <!-- BUTTON -->
+
+        <button
+            class="btn-start"
+            onclick="startStream()"
+        >
+            BẮT ĐẦU PHÁT
+        </button>
+
     </div>
 
-    <button id="btn-close" onclick="stopStream()">✕</button>
+    <!-- CLOSE -->
 
-    <div id="zoom-control-box">
-        <button class="zoom-btn" onclick="changeZoomBtn(1)">+</button>
-        <input type="range" id="zoom-slider" class="zoom-slider" min="100" max="400" step="10" value="100" oninput="applyHardwareZoom(this.value)">
-        <button class="zoom-btn" onclick="changeZoomBtn(-1)">-</button>
-    </div>
-    
-    <iframe id="stream-iframe" src="" allow="camera *; microphone *; autoplay *; fullscreen *" allowfullscreen></iframe>
+    <button
+        id="btn-close"
+        onclick="stopStream()"
+    >
+        ✕
+    </button>
+
+    <!-- IFRAME -->
+
+    <iframe
+        id="stream-iframe"
+        src=""
+        allow="camera *; microphone *; autoplay *; fullscreen *"
+        allowfullscreen
+    ></iframe>
 
     <script>
+
         let wakeLockSentinel = null;
 
-        function autoChangeBitrate() {
-            const qualityInput = document.getElementById('stream-quality').value;
-            const bitrateInput = document.getElementById('stream-bitrate');
-            if (qualityInput === 'hd') bitrateInput.value = "2500";
-            else if (qualityInput === 'fhd') bitrateInput.value = "6000";
-            else if (qualityInput === '2k') bitrateInput.value = "8000";
-        }
+        /* =========================
+           AUTO BITRATE
+        ========================== */
 
-        // 🕵️‍♂️ BÙA CHÚ MỚI: Gửi lệnh Zoom trực tiếp vào hệ thống camera phần cứng của VDO.Ninja
-        function applyHardwareZoom(value) {
-            const iframe = document.getElementById('stream-iframe');
-            // Bắn một tin nhắn (postMessage) xuyên qua Iframe để ra lệnh cho VDO thay đổi tiêu cự camera
-            iframe.contentWindow.postMessage({ "zoom": parseInt(value) }, '*');
-        }
+        function autoChangeBitrate(){
 
-        function changeZoomBtn(direction) {
-            const slider = document.getElementById('zoom-slider');
-            let newValue = parseInt(slider.value) + (direction * 20); // Mỗi lần bấm tăng giảm 20 đơn vị
-            if (newValue < 100) newValue = 100;
-            if (newValue > 400) newValue = 400;
-            slider.value = newValue;
-            applyHardwareZoom(newValue);
-        }
+            const qualityInput =
+                document.getElementById('stream-quality').value;
 
-        function startStream() {
-            const idInput = document.getElementById('channel-id').value.trim();
-            const qualityInput = document.getElementById('stream-quality').value;
-            let customBitrate = document.getElementById('stream-bitrate').value.trim();
-            
-            if (!idInput) { alert('Nhập ID vào đã mày ơi!'); return; }
-            if (!customBitrate || isNaN(customBitrate) || customBitrate <= 0) { alert('Nhập Bitrate!'); return; }
+            const bitrateInput =
+                document.getElementById('stream-bitrate');
 
-            const mainContainer = document.getElementById('main-container');
-            const iframe = document.getElementById('stream-iframe');
-            const btnClose = document.getElementById('btn-close');
-            const zoomBox = document.getElementById('zoom-control-box');
+            if(qualityInput === 'hd'){
+                bitrateInput.value = "2500";
+            }
 
-            let width = 1920; let height = 1080;
-            if (qualityInput === 'hd') { width = 1280; height = 720; } 
-            else if (qualityInput === '2k') { width = 2560; height = 1440; }
+            else if(qualityInput === 'fhd'){
+                bitrateInput.value = "6000";
+            }
 
-            const secretDomain = atob("aHR0cHM6Ly92ZG8ubmluamEv"); 
-            
-            // 🔒 QUAN TRỌNG: Thêm tham số &control và &zoom vào URL để VDO cho phép điều khiển camera từ xa
-            const vdoUrl = `${secretDomain}?push=${idInput}&facing=back&webcam&width=${width}&height=${height}&videobitrate=${customBitrate}&scale=100&autostart=1&clean=1&zoom&control&buttons=0`;
-
-            const docElm = document.documentElement;
-            if (docElm.requestFullscreen) docElm.requestFullscreen();
-            else if (docElm.webkitRequestFullscreen) docElm.webkitRequestFullscreen();
-
-            // Reset slider về 100 (tức là 1x)
-            document.getElementById('zoom-slider').value = 100;
-
-            mainContainer.style.display = 'none';
-            iframe.src = vdoUrl; 
-            iframe.style.display = 'block';
-            btnClose.style.display = 'flex';
-            zoomBox.style.display = 'flex';
-
-            if (navigator.wakeLock) {
-                navigator.wakeLock.request('screen').catch(err => console.log(err));
+            else if(qualityInput === '2k'){
+                bitrateInput.value = "8000";
             }
         }
 
-        function stopStream() {
-            const mainContainer = document.getElementById('main-container');
-            const iframe = document.getElementById('stream-iframe');
-            const btnClose = document.getElementById('btn-close');
-            const zoomBox = document.getElementById('zoom-control-box');
+        /* =========================
+           START STREAM
+        ========================== */
 
-            if (document.exitFullscreen) document.exitFullscreen();
-            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        async function startStream(){
+
+            const idInput =
+                document.getElementById('channel-id')
+                .value
+                .trim();
+
+            const qualityInput =
+                document.getElementById('stream-quality')
+                .value;
+
+            let customBitrate =
+                document.getElementById('stream-bitrate')
+                .value
+                .trim();
+
+            if(!idInput){
+
+                alert('Nhập ID vào đã mày ơi!');
+                return;
+            }
+
+            if(
+                !customBitrate ||
+                isNaN(customBitrate) ||
+                customBitrate <= 0
+            ){
+                alert('Nhập Bitrate!');
+                return;
+            }
+
+            const mainContainer =
+                document.getElementById('main-container');
+
+            const iframe =
+                document.getElementById('stream-iframe');
+
+            const btnClose =
+                document.getElementById('btn-close');
+
+            /* =========================
+               RESOLUTION
+            ========================== */
+
+            let width = 1920;
+            let height = 1080;
+
+            if(qualityInput === 'hd'){
+
+                width = 1280;
+                height = 720;
+            }
+
+            else if(qualityInput === '2k'){
+
+                width = 2560;
+                height = 1440;
+            }
+
+            /* =========================
+               SECRET DOMAIN
+            ========================== */
+
+            const secretDomain =
+                atob("aHR0cHM6Ly92ZG8ubmluamEv");
+
+            /* =========================
+               VDO URL
+            ========================== */
+
+            const vdoUrl =
+            `${secretDomain}?push=${idInput}
+            &webcam
+            &facing=back
+            &width=${width}
+            &height=${height}
+            &bitrate=${customBitrate}
+            &quality=0
+            &framerate=30
+            &codec=h264
+            &autostart
+            &cleanoutput
+            &transparent
+            &noheader
+            &muted
+            &buttons=0`
+            .replace(/\s+/g,'');
+
+            /* =========================
+               FULLSCREEN
+            ========================== */
+
+            try{
+                await iframe.requestFullscreen?.();
+            }catch(e){}
+
+            /* =========================
+               SHOW STREAM
+            ========================== */
+
+            mainContainer.style.display = 'none';
+
+            iframe.src = vdoUrl;
+
+            iframe.style.display = 'block';
+
+            btnClose.style.display = 'flex';
+
+            /* =========================
+               WAKE LOCK
+            ========================== */
+
+            try{
+
+                if(navigator.wakeLock){
+
+                    wakeLockSentinel =
+                        await navigator.wakeLock.request('screen');
+                }
+
+            }catch(err){
+                console.log(err);
+            }
+
+            /* =========================
+               AUTO RECOVER
+            ========================== */
+
+            iframe.onerror = () => {
+
+                iframe.src = iframe.src;
+            };
+        }
+
+        /* =========================
+           STOP STREAM
+        ========================== */
+
+        async function stopStream(){
+
+            const mainContainer =
+                document.getElementById('main-container');
+
+            const iframe =
+                document.getElementById('stream-iframe');
+
+            const btnClose =
+                document.getElementById('btn-close');
+
+            /* =========================
+               EXIT FULLSCREEN
+            ========================== */
+
+            try{
+
+                if(document.exitFullscreen){
+                    await document.exitFullscreen();
+                }
+
+            }catch(e){}
+
+            /* =========================
+               RELEASE WAKE LOCK
+            ========================== */
+
+            try{
+
+                if(wakeLockSentinel){
+
+                    await wakeLockSentinel.release();
+
+                    wakeLockSentinel = null;
+                }
+
+            }catch(err){
+                console.log(err);
+            }
+
+            /* =========================
+               RESET
+            ========================== */
 
             iframe.src = '';
+
             iframe.style.display = 'none';
+
             btnClose.style.display = 'none';
-            zoomBox.style.display = 'none';
+
             mainContainer.style.display = 'flex';
         }
 
-        document.addEventListener('contextmenu', e => e.preventDefault());
-        document.onkeydown = function(e) {
-            if (e.keyCode == 123) return false;
-        }
+        /* =========================
+           BLOCK CONTEXT MENU
+        ========================== */
+
+        document.addEventListener(
+            'contextmenu',
+            e => e.preventDefault()
+        );
+
+        document.onkeydown = function(e){
+
+            if(e.keyCode == 123){
+                return false;
+            }
+        };
+
     </script>
+
 </body>
 </html>
